@@ -402,42 +402,48 @@ class ExpressionHandler extends Handler<Expression, IASTInitializerClause, CXXLa
       // Pointer types contain * or []. We do not want that here.
       Type baseType = ((MemberExpression) reference).getBase().getType().getRoot();
       assert !(baseType instanceof SecondOrderType);
-      baseTypename = baseType.getTypeName();
-      DeclaredReferenceExpression member =
-          NodeBuilder.newDeclaredReferenceExpression(
-              reference.getName(), UnknownType.getUnknownType(), reference.getName());
 
-      member.setLocation(lang.getLocationFromRawNode(reference));
+      baseTypename = baseType.getTypeName();
 
       callExpression =
           NodeBuilder.newMemberCallExpression(
-              member.getName(),
-              baseTypename + "." + member.getName(),
+              reference.getName(),
+              baseTypename + "." + reference.getName(),
               ((MemberExpression) reference).getBase(),
-              member,
+              (MemberExpression) reference,
               ctx.getRawSignature());
     } else if (reference instanceof BinaryOperator
         && ((BinaryOperator) reference).getOperatorCode().equals(".")) {
       // We have a dot operator that was not classified as a member expression. This happens when
       // dealing with function pointer calls that happen on an explicit object
+
+      // TODO: properly convert this rhs a member expression
+      var rhs = ((BinaryOperator) reference).getRhs();
+
+      var member =
+          NodeBuilder.newMemberExpression(null, rhs.getType(), rhs.getName(), rhs.getCode());
+
       callExpression =
           NodeBuilder.newMemberCallExpression(
               reference.getCode(),
               "",
               ((BinaryOperator) reference).getLhs(),
-              ((BinaryOperator) reference).getRhs(),
+              member,
               reference.getCode());
     } else if (reference instanceof UnaryOperator
         && ((UnaryOperator) reference).getOperatorCode().equals("*")) {
+
+      // TODO: properly convert this input a member expression
+      var input = ((UnaryOperator) reference).getInput();
+
+      var member =
+          NodeBuilder.newMemberExpression(null, input.getType(), input.getName(), input.getCode());
+
       // Classic C-style function pointer call -> let's extract the target. For easy
       // compatibility with C++-style function pointer calls, we create a member call without a base
       callExpression =
           NodeBuilder.newMemberCallExpression(
-              reference.getCode(),
-              "",
-              null,
-              ((UnaryOperator) reference).getInput(),
-              reference.getCode());
+              reference.getCode(), "", null, member, reference.getCode());
     } else {
       String fqn = reference.getName();
       String name = fqn;

@@ -704,9 +704,14 @@ public class ExpressionHandler extends Handler<Statement, Expression, JavaLangua
         isStatic = true;
       }
 
-      if (!isStatic) {
-        DeclaredReferenceExpression member =
-            NodeBuilder.newDeclaredReferenceExpression(name, UnknownType.getUnknownType(), "");
+      if (!isStatic
+          && base instanceof de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression) {
+        var member =
+            NodeBuilder.newMemberExpression(
+                (de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression) base,
+                UnknownType.getUnknownType(),
+                name,
+                "");
 
         lang.setCodeAndRegion(
             member,

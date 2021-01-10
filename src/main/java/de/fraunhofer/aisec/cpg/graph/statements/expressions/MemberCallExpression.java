@@ -26,7 +26,6 @@
 
 package de.fraunhofer.aisec.cpg.graph.statements.expressions;
 
-import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.SubGraph;
 import java.util.Objects;
 
@@ -37,13 +36,13 @@ import java.util.Objects;
 public class MemberCallExpression extends CallExpression {
 
   @SubGraph("AST")
-  private Node member;
+  private MemberExpression member;
 
-  public Node getMember() {
+  public MemberExpression getMember() {
     return member;
   }
 
-  public void setMember(Node member) {
+  public void setMember(MemberExpression member) {
     this.member = member;
   }
 
