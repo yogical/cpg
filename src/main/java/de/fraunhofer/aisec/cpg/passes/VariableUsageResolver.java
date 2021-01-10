@@ -287,19 +287,25 @@ public class VariableUsageResolver extends Pass {
         }
       }
 
-      Type baseType = memberExpression.getBase().getType();
-      if (!recordMap.containsKey(baseType)) {
-        final Type containingT = baseType;
-        Optional<Type> fqnResolvedType =
-            recordMap.keySet().stream()
-                .filter(t -> t.getName().endsWith("." + containingT.getName()))
-                .findFirst();
-        if (fqnResolvedType.isPresent()) {
-          baseType = fqnResolvedType.get();
-        }
-      }
+      var base = memberExpression.getBase();
 
-      memberExpression.setRefersTo(resolveMember(baseType, memberExpression));
+      if (base != null) {
+        Type baseType = base.getType();
+        if (!recordMap.containsKey(baseType)) {
+          final Type containingT = baseType;
+          Optional<Type> fqnResolvedType =
+              recordMap.keySet().stream()
+                  .filter(t -> t.getName().endsWith("." + containingT.getName()))
+                  .findFirst();
+          if (fqnResolvedType.isPresent()) {
+            baseType = fqnResolvedType.get();
+          }
+        }
+
+        memberExpression.setRefersTo(resolveMember(baseType, memberExpression));
+      } else {
+        log.error("Base of {} is null. this should not be", memberExpression);
+      }
     }
   }
 
@@ -344,12 +350,13 @@ public class VariableUsageResolver extends Pass {
     }
 
     String simpleName = Util.getSimpleName(lang.getNamespaceDelimiter(), reference.getName());
-    Optional<FieldDeclaration> member = Optional.empty();
+    Optional<ValueDeclaration> member = Optional.empty();
+
     if (!(containingClass instanceof UnknownType) && recordMap.containsKey(containingClass)) {
       member =
-          recordMap.get(containingClass).getFields().stream()
+          recordMap.get(containingClass).getMembers().stream()
               .filter(f -> f.getName().equals(simpleName))
-              .map(FieldDeclaration::getDefinition)
+              // .map(FieldDeclaration::getDefinition)
               .findFirst();
     }
 
@@ -358,9 +365,9 @@ public class VariableUsageResolver extends Pass {
           superTypesMap.getOrDefault(containingClass, Collections.emptyList()).stream()
               .map(recordMap::get)
               .filter(Objects::nonNull)
-              .flatMap(r -> r.getFields().stream())
+              .flatMap(r -> r.getMembers().stream())
               .filter(f -> f.getName().equals(simpleName))
-              .map(FieldDeclaration::getDefinition)
+              // .map(FieldDeclaration::getDefinition)
               .findFirst();
     }
     // Attention: using orElse instead of orElseGet will always invoke unknown declaration handling!

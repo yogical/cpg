@@ -33,6 +33,7 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.SubGraph;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
+import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -101,6 +102,19 @@ public class RecordDeclaration extends Declaration implements DeclarationHolder 
 
   public List<PropertyEdge<FieldDeclaration>> getFieldsPropertyEdge() {
     return this.fields;
+  }
+
+  /**
+   * Convenience function that returns all member declarations of this class, i.e. fields, methods,
+   * constructors.
+   *
+   * @return a list of member declarations
+   */
+  public List<ValueDeclaration> getMembers() {
+    return SubgraphWalker.getAstChildren(this).stream()
+        .filter(node -> node instanceof ValueDeclaration)
+        .map(node -> (ValueDeclaration) node)
+        .collect(Collectors.toList());
   }
 
   public void addField(FieldDeclaration fieldDeclaration) {
