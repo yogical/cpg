@@ -159,7 +159,7 @@ public class CallResolver extends Pass {
    * @param curClass The class containing the call
    * @param call The call to be resolved
    */
-  private void handleSuperCall(RecordDeclaration curClass, CallExpression call) {
+  private void handleSuperCall(RecordDeclaration curClass, MemberCallExpression call) {
     RecordDeclaration target = null;
     if (call.getBase().getName().equals("super")) {
       // direct superclass, either defined explicitly or java.lang.Object by default
@@ -184,7 +184,7 @@ public class CallResolver extends Pass {
   }
 
   private RecordDeclaration handleSpecificSupertype(
-      RecordDeclaration curClass, CallExpression call) {
+      RecordDeclaration curClass, MemberCallExpression call) {
     String baseName =
         call.getBase().getName().substring(0, call.getBase().getName().lastIndexOf(".super"));
     if (curClass.getImplementedInterfaces().contains(TypeParser.createFrom(baseName, true))) {
@@ -226,14 +226,14 @@ public class CallResolver extends Pass {
   }
 
   private void handleCallExpression(RecordDeclaration curClass, CallExpression call) {
-    if (lang instanceof JavaLanguageFrontend
-        && call.getBase() instanceof DeclaredReferenceExpression
-        && call.getBase().getName().matches("(?<class>.+\\.)?super")) {
-      handleSuperCall(curClass, call);
-      return;
-    }
-
     if (call instanceof MemberCallExpression) {
+      if (lang instanceof JavaLanguageFrontend
+          && ((MemberCallExpression) call).getBase() instanceof DeclaredReferenceExpression
+          && ((MemberCallExpression) call).getBase().getName().matches("(?<class>.+\\.)?super")) {
+        handleSuperCall(curClass, ((MemberCallExpression) call));
+        return;
+      }
+
       Node member = ((MemberCallExpression) call).getMember();
       if (member instanceof HasType
           && ((HasType) member).getType() instanceof FunctionPointerType) {
@@ -333,10 +333,10 @@ public class CallResolver extends Pass {
       }
     }
 
-    if (curClass != null
+    /*if (curClass != null
         && !(call instanceof MemberCallExpression || call instanceof StaticCallExpression)) {
       call.setBase(curClass.getThis());
-    }
+    }*/
 
     if (invocationCandidates.isEmpty()) {
       possibleContainingTypes.stream()

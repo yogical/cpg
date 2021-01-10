@@ -718,7 +718,7 @@ public class ExpressionHandler extends Handler<Statement, Expression, JavaLangua
             methodCallExpr); // This will also overwrite the code set to the empty string set above
         callExpression =
             NodeBuilder.newMemberCallExpression(
-                name, qualifiedName, base, member, methodCallExpr.toString());
+                name, qualifiedName, member, methodCallExpr.toString());
       } else {
         String targetClass;
         if (resolved != null) {

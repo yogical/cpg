@@ -26,8 +26,12 @@
 
 package de.fraunhofer.aisec.cpg.graph.statements.expressions;
 
+import de.fraunhofer.aisec.cpg.graph.HasType;
 import de.fraunhofer.aisec.cpg.graph.SubGraph;
+import de.fraunhofer.aisec.cpg.graph.types.Type;
 import java.util.Objects;
+import java.util.Set;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Represents a {@link CallExpression} to a function, which is a member of an object. For example
@@ -44,6 +48,15 @@ public class MemberCallExpression extends CallExpression {
 
   public void setMember(MemberExpression member) {
     this.member = member;
+  }
+
+  /**
+   * Returns the base of this member call expression. This is a convenience function, since the base
+   * is not part of the member call expression, but rather its member expression.
+   */
+  @Nullable
+  public Expression getBase() {
+    return this.member != null ? this.member.getBase() : null;
   }
 
   @Override
@@ -64,5 +77,21 @@ public class MemberCallExpression extends CallExpression {
   @Override
   public int hashCode() {
     return super.hashCode();
+  }
+
+  @Override
+  public void typeChanged(HasType src, HasType root, Type oldType) {
+    if (src == getBase()) {
+      setFqn(src.getType().getRoot().getTypeName() + "." + this.getName());
+    } else {
+      super.typeChanged(src, root, oldType);
+    }
+  }
+
+  @Override
+  public void possibleSubTypesChanged(HasType src, HasType root, Set<Type> oldSubTypes) {
+    if (src != getBase()) {
+      super.possibleSubTypesChanged(src, root, oldSubTypes);
+    }
   }
 }

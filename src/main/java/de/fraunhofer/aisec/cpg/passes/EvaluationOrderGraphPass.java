@@ -312,16 +312,16 @@ public class EvaluationOrderGraphPass extends Pass {
     // Todo add call as throwexpression to outer scope of call can throw (which is trivial to find
     // out for java, but impossible for c++)
 
-    // evaluate base first, if there is one
-    if (callExpression instanceof MemberCallExpression
-        && callExpression.getBase() instanceof Statement) {
-      createEOG(callExpression.getBase());
+    // evaluate member, if member call expression
+    if (callExpression instanceof MemberCallExpression) {
+      createEOG(((MemberCallExpression) callExpression).getMember());
     }
 
     // first the arguments
     for (Expression arg : callExpression.getArguments()) {
       createEOG(arg);
     }
+
     // then the call itself
     pushToEOG(callExpression);
   }

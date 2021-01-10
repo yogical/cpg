@@ -57,29 +57,7 @@ public class CallExpression extends Expression implements TypeListener {
   @SubGraph("AST")
   private List<PropertyEdge<Expression>> arguments = new ArrayList<>();
 
-  /**
-   * The base object. This is marked as an AST child, because this is required for {@link
-   * MemberCallExpression}. Be aware that for simple calls the implicit "this" base is not part of
-   * the original AST, but we treat it as such for better consistency
-   */
-  @SubGraph("AST")
-  private Node base;
-
   private String fqn;
-
-  public Node getBase() {
-    return base;
-  }
-
-  public void setBase(Node base) {
-    if (this.base instanceof HasType) {
-      ((HasType) this.base).unregisterTypeListener(this);
-    }
-    this.base = base;
-    if (base instanceof HasType) {
-      ((HasType) base).registerTypeListener(this);
-    }
-  }
 
   @NonNull
   public List<Expression> getArguments() {
@@ -141,46 +119,37 @@ public class CallExpression extends Expression implements TypeListener {
 
   @Override
   public void typeChanged(HasType src, HasType root, Type oldType) {
-    if (src == base) {
-      setFqn(src.getType().getRoot().getTypeName() + "." + this.getName());
-    } else {
-      Type previous = this.type;
-      List<Type> types =
-          invokes.stream()
-              .map(pe -> pe.getEnd())
-              .map(FunctionDeclaration::getType)
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList());
-      Type alternative = !types.isEmpty() ? types.get(0) : null;
-      Type commonType = TypeManager.getInstance().getCommonType(types).orElse(alternative);
-      Set<Type> subTypes = new HashSet<>(getPossibleSubTypes());
-      subTypes.remove(oldType);
-      subTypes.addAll(types);
+    Type previous = this.type;
+    List<Type> types =
+        invokes.stream()
+            .map(PropertyEdge::getEnd)
+            .map(FunctionDeclaration::getType)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    Type alternative = !types.isEmpty() ? types.get(0) : null;
+    Type commonType = TypeManager.getInstance().getCommonType(types).orElse(alternative);
+    Set<Type> subTypes = new HashSet<>(getPossibleSubTypes());
+    subTypes.remove(oldType);
+    subTypes.addAll(types);
 
-      setType(commonType, root);
-      setPossibleSubTypes(subTypes, root);
+    setType(commonType, root);
+    setPossibleSubTypes(subTypes, root);
 
-      if (!previous.equals(this.type)) {
-        this.type.setTypeOrigin(Type.Origin.DATAFLOW);
-      }
+    if (!previous.equals(this.type)) {
+      this.type.setTypeOrigin(Type.Origin.DATAFLOW);
     }
   }
 
   @Override
   public void possibleSubTypesChanged(HasType src, HasType root, Set<Type> oldSubTypes) {
-    if (src != base) {
-      Set<Type> subTypes = new HashSet<>(getPossibleSubTypes());
-      subTypes.addAll(src.getPossibleSubTypes());
-      setPossibleSubTypes(subTypes, root);
-    }
+    Set<Type> subTypes = new HashSet<>(getPossibleSubTypes());
+    subTypes.addAll(src.getPossibleSubTypes());
+    setPossibleSubTypes(subTypes, root);
   }
 
   @Override
   public String toString() {
-    return new ToStringBuilder(this, Node.TO_STRING_STYLE)
-        .appendSuper(super.toString())
-        .append("base", base)
-        .toString();
+    return new ToStringBuilder(this, Node.TO_STRING_STYLE).appendSuper(super.toString()).toString();
   }
 
   public String getFqn() {
@@ -204,8 +173,7 @@ public class CallExpression extends Expression implements TypeListener {
         && Objects.equals(arguments, that.arguments)
         && Objects.equals(this.getArguments(), that.getArguments())
         && Objects.equals(invokes, that.invokes)
-        && Objects.equals(this.getInvokes(), that.getInvokes())
-        && Objects.equals(base, that.base);
+        && Objects.equals(this.getInvokes(), that.getInvokes());
   }
 
   @Override

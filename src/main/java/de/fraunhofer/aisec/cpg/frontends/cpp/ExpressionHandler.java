@@ -409,8 +409,7 @@ class ExpressionHandler extends Handler<Expression, IASTInitializerClause, CXXLa
           NodeBuilder.newMemberCallExpression(
               reference.getName(),
               baseTypename + "." + reference.getName(),
-              ((MemberExpression) reference).getBase(),
-              (MemberExpression) reference,
+                  (MemberExpression) reference,
               ctx.getRawSignature());
     } else if (reference instanceof BinaryOperator
         && ((BinaryOperator) reference).getOperatorCode().equals(".")) {
@@ -427,8 +426,7 @@ class ExpressionHandler extends Handler<Expression, IASTInitializerClause, CXXLa
           NodeBuilder.newMemberCallExpression(
               reference.getCode(),
               "",
-              ((BinaryOperator) reference).getLhs(),
-              member,
+                  member,
               reference.getCode());
     } else if (reference instanceof UnaryOperator
         && ((UnaryOperator) reference).getOperatorCode().equals("*")) {
@@ -443,7 +441,7 @@ class ExpressionHandler extends Handler<Expression, IASTInitializerClause, CXXLa
       // compatibility with C++-style function pointer calls, we create a member call without a base
       callExpression =
           NodeBuilder.newMemberCallExpression(
-              reference.getCode(), "", null, member, reference.getCode());
+              reference.getCode(), "", member, reference.getCode());
     } else {
       String fqn = reference.getName();
       String name = fqn;
