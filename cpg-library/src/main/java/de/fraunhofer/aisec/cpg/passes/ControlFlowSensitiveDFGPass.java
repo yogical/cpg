@@ -46,8 +46,8 @@ import java.util.*;
  * tracking
  *
  * <p>This pass will split up at every branch in the EOG. Because of the existence of loops and
- * multiple paths being able to run to trough the same Declared reference expression we have to keep
- * track of the set of values (assignments) associated to a variable at JoinPoints. If the set
+ * multiple paths being able to run to through the same Declared reference expression we have to
+ * keep track of the set of values (assignments) associated to a variable at JoinPoints. If the set
  * reaching a Joinpoint is not adding new values to one variable the path does not have to be
  * further explored. This ensures that the algorithm terminates and scales with the number of
  * different paths in the program finally reaching a fixpoint.

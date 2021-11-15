@@ -53,19 +53,28 @@ class BotanExampleTest extends BaseTest {
     assertEquals(5, declarations.size());
 
     Declaration doCrypt =
-        declarations.stream().filter(decl -> decl.getName().equals("do_crypt")).findFirst().get();
+        declarations.stream()
+            .filter(decl -> decl.getName().equals("do_crypt"))
+            .findFirst()
+            .orElse(null);
 
     assertTrue(doCrypt instanceof FunctionDeclaration);
     assertEquals("do_crypt", doCrypt.getName());
 
     Declaration encrypt =
-        declarations.stream().filter(decl -> decl.getName().equals("encrypt")).findFirst().get();
+        declarations.stream()
+            .filter(decl -> decl.getName().equals("encrypt"))
+            .findFirst()
+            .orElse(null);
 
     assertTrue(encrypt instanceof FunctionDeclaration);
     assertEquals("encrypt", encrypt.getName());
 
     Declaration decrypt =
-        declarations.stream().filter(decl -> decl.getName().equals("decrypt")).findFirst().get();
+        declarations.stream()
+            .filter(decl -> decl.getName().equals("decrypt"))
+            .findFirst()
+            .orElse(null);
 
     assertTrue(decrypt instanceof FunctionDeclaration);
     assertEquals("decrypt", decrypt.getName());

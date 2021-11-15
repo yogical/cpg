@@ -92,7 +92,7 @@ tasks.named<Test>("test") {
         } else {
             systemProperty("java.library.path", project.projectDir.resolve("src/main/golang"))
         }
-        
+
         if (!project.hasProperty("experimentalTypeScript")) {
             excludeTags("experimentalTypeScript")
         }
@@ -223,6 +223,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
 
     testImplementation("org.mockito:mockito-core:4.0.0")
-    
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }

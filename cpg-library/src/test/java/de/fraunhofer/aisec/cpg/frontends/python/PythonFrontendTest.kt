@@ -878,8 +878,7 @@ class PythonFrontendTest : BaseTest() {
         val foo = p.getDeclarationsByName("foo", VariableDeclaration::class.java)
         assertNotNull(foo)
 
-        val initializer =
-            (foo.first() as? VariableDeclaration)?.initializer as? MemberCallExpression
+        val initializer = foo.first()?.initializer as? MemberCallExpression
         assertNotNull(initializer)
 
         assertEquals("zzz", initializer.name)

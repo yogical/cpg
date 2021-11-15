@@ -74,7 +74,7 @@ public class TranslationUnitDeclaration extends Declaration
    * @param i the index
    * @param clazz the class
    * @param <T> the type of the class
-   * @return the declaration or null, if it the declaration can not be cast to the class
+   * @return the declaration or null, if the declaration can not be cast to the class
    */
   @Nullable
   public <T extends Declaration> T getDeclarationAs(int i, Class<T> clazz) {
@@ -118,7 +118,6 @@ public class TranslationUnitDeclaration extends Declaration
   }
 
   @NotNull
-  @NonNull
   public List<Declaration> getDeclarations() {
     return unwrap(this.declarations);
   }
@@ -154,7 +153,6 @@ public class TranslationUnitDeclaration extends Declaration
     } else if (declaration instanceof NamespaceDeclaration) {
       addIfNotContains(namespaces, declaration);
     }
-
     addIfNotContains(declarations, declaration);
   }
 
@@ -168,6 +166,7 @@ public class TranslationUnitDeclaration extends Declaration
     this.statements = statements;
   }
 
+  @NotNull
   @Override
   public String toString() {
     return new ToStringBuilder(this, Node.TO_STRING_STYLE)

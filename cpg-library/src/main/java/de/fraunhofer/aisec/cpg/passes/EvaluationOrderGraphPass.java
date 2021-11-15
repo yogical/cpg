@@ -130,9 +130,9 @@ public class EvaluationOrderGraphPass extends Pass {
   }
 
   /**
-   * Searches backwards in the EOG Graph on whether or not there is a path from a function
-   * declaration to the given node. After the construction phase some unreachable nodes may have EOG
-   * edges. This function also serves to truncate the EOG graph by unreachable paths.
+   * Searches backwards in the EOG Graph on whether there is a path from a function declaration to
+   * the given node. After the construction phase some unreachable nodes may have EOG edges. This
+   * function also serves to truncate the EOG graph by unreachable paths.
    *
    * @param node - That lies on the reachable or unreachable path
    * @return true if the node can bea reached from a function declaration
@@ -167,17 +167,18 @@ public class EvaluationOrderGraphPass extends Pass {
     for (TranslationUnitDeclaration tu : result.getTranslationUnits()) {
       createEOG(tu);
       removeUnreachableEOGEdges(tu);
-      // checkEOGInvariant(tu); To insert when trying to check if the invariant holds
+      checkEOGInvariant(tu); // To insert when trying to check if the invariant holds
     }
   }
 
   /**
-   * Checks if every node that has another node in its next or previous EOG List is also contained
-   * in that nodes previous or next EOG list to ensure the bidirectionality of the relation in both
-   * lists.
+   * Checks if every node that has another node in its next or previous EOG
+   * List is also contained in that nodes previous or next EOG list to ensure
+   * the bidirectionality of the relation in both lists.
    *
-   * @param n
-   * @return
+   * @param n {@link Node} root node to start
+   * @return {@code true} if the EOG invariant verifies, {@code false}
+   * otherwise
    */
   public static boolean checkEOGInvariant(Node n) {
     List<Node> allNodes = SubgraphWalker.flattenAST(n);

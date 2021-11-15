@@ -223,7 +223,7 @@ class ExpressionHandler(lang: LLVMIRLanguageFrontend) :
         // loop through the operands
         for (i in 0 until LLVMGetNumOperands(value)) {
             // and handle them as expressions themselves
-            val arg = this.handle(LLVMGetOperand(value, i)) as? Expression
+            val arg = this.handle(LLVMGetOperand(value, i))
             expr.addArgument(arg)
         }
 
@@ -362,7 +362,7 @@ class ExpressionHandler(lang: LLVMIRLanguageFrontend) :
 
         // loop through all operands / indices
         for (idx: Int in loopStart until numOps) {
-            val index =
+            val index: Any =
                 if (isGetElementPtr) {
                     // the second argument is the base address that we start our chain from
                     operand = lang.getOperandValueAtIndex(instr, idx)

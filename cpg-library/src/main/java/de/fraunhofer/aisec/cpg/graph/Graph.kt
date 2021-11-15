@@ -162,7 +162,7 @@ class QueryContext constructor(val graph: Graph) {
                 }
             }
 
-            // finally handle it like a normal node
+            // finally, handle it like a normal node
             handleNodePattern(chain.element() as NodePattern, nodes, where, predicate)
         }
     }
