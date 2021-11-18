@@ -58,7 +58,7 @@ subprojects {
         mavenCentral()
 
         ivy {
-            setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+            setUrl("https://download.eclipse.org/tools/cdt/releases/10.4/cdt-10.4.1/plugins")
             metadataSources {
                 artifact()
             }
@@ -121,7 +121,7 @@ subprojects {
  */
 """
 
-    var headerWithHashes = """#
+    val headerWithHashes = """#
 # Copyright (c) ${"$"}YEAR, Fraunhofer AISEC. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

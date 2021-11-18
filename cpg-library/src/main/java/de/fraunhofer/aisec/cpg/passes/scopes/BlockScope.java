@@ -27,10 +27,9 @@ package de.fraunhofer.aisec.cpg.passes.scopes;
 
 import de.fraunhofer.aisec.cpg.graph.statements.BreakStatement;
 import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement;
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class BlockScope extends ValueDeclarationScope implements Breakable {
   @NonNull private final List<BreakStatement> breaks = new ArrayList<>();
