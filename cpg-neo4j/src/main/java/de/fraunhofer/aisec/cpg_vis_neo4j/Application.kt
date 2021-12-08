@@ -219,7 +219,7 @@ class Application : Callable<Int> {
     /**
      * Parse the file paths to analyze and set up the translationConfiguration with these paths.
      *
-     * @throws IllegalArgumentException, if there was no arguments provided, or the path does not
+     * @throws IllegalArgumentException, if there were no arguments provided, or the path does not
      * point to a file, is a directory or point to a hidden file or the paths does not have the same
      * top level path.
      */

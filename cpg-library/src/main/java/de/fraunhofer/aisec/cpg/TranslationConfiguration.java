@@ -392,13 +392,13 @@ public class TranslationConfiguration {
      * @return
      */
     public Builder defaultPasses() {
-      registerPass(new TypeHierarchyResolver());
+      /*registerPass(new TypeHierarchyResolver());
       registerPass(new JavaExternalTypeHierarchyResolver());
       registerPass(new ImportResolver());
-      registerPass(new VariableUsageResolver());
+      registerPass(new VariableUsageResolver());*/
       registerPass(new CallResolver()); // creates CG
       registerPass(new EvaluationOrderGraphPass()); // creates EOG
-      registerPass(new TypeResolver());
+      /*registerPass(new TypeResolver());*/
       registerPass(new ControlFlowSensitiveDFGPass());
       registerPass(new FilenameMapper());
       return this;

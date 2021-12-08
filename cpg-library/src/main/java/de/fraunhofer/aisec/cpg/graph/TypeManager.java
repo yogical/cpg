@@ -108,7 +108,7 @@ public class TypeManager {
    * The language frontend that is currently active. This can be null, e.g. if we are executed in
    * tests.
    */
-  @org.jetbrains.annotations.Nullable private LanguageFrontend frontend;
+  @Nullable private LanguageFrontend frontend;
 
   private boolean noFrontendWarningIssued = false;
 

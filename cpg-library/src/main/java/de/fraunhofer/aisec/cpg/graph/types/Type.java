@@ -50,7 +50,7 @@ public abstract class Type extends Node {
    * auto, extern, static, register: consider "auto" as modifier or auto to automatically infer the
    * value.
    */
-  @NonNull protected Storage storage = Storage.AUTO;
+  @NonNull protected Storage storage;
 
   protected boolean primitive = false;
 

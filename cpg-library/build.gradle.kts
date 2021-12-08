@@ -121,7 +121,7 @@ val yarnInstall by tasks.registering(YarnTask::class) {
     outputs.cacheIf { true }
 
     workingDir.set(file("src/main/nodejs"))
-    yarnCommand.set(listOf("install", "--ignore-optional"))
+    yarnCommand.set(listOf("install"))
 }
 
 val yarnBuild by tasks.registering(YarnTask::class) {

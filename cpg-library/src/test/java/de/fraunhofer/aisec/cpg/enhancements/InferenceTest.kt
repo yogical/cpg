@@ -30,8 +30,8 @@ import de.fraunhofer.aisec.cpg.TestUtils.analyzeAndGetFirstTU
 import de.fraunhofer.aisec.cpg.graph.byNameOrNull
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class InferenceTest {
@@ -50,7 +50,7 @@ class InferenceTest {
 
         val record = tu.byNameOrNull<RecordDeclaration>("T")
         assertNotNull(record)
-        assertEquals("T", record.name)
+        assertEquals("T", record!!.name)
         assertEquals(true, record.isInferred)
         assertEquals("struct", record.kind)
 
@@ -58,11 +58,11 @@ class InferenceTest {
 
         val valueField = record.getField("value")
         assertNotNull(valueField)
-        assertEquals("int", valueField.type.typeName)
+        assertEquals("int", valueField!!.type.typeName)
 
         val nextField = record.getField("next")
         assertNotNull(nextField)
-        assertEquals("T*", nextField.type.typeName)
+        assertEquals("T*", nextField!!.type.typeName)
     }
 
     @Test
@@ -79,7 +79,7 @@ class InferenceTest {
 
         val record = tu.byNameOrNull<RecordDeclaration>("T")
         assertNotNull(record)
-        assertEquals("T", record.name)
+        assertEquals("T", record!!.name)
         assertEquals(true, record.isInferred)
         assertEquals("class", record.kind)
 
@@ -87,10 +87,10 @@ class InferenceTest {
 
         val valueField = record.getField("value")
         assertNotNull(valueField)
-        assertEquals("int", valueField.type.typeName)
+        assertEquals("int", valueField!!.type.typeName)
 
         val nextField = record.getField("next")
         assertNotNull(nextField)
-        assertEquals("T*", nextField.type.typeName)
+        assertEquals("T*", nextField!!.type.typeName)
     }
 }

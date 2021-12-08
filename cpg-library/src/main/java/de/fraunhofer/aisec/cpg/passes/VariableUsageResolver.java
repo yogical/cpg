@@ -30,7 +30,8 @@ import static de.fraunhofer.aisec.cpg.helpers.Util.warnWithFileLocation;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.frontends.java.JavaLanguageFrontend;
-import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.NodeBuilder;
 import de.fraunhofer.aisec.cpg.graph.declarations.*;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression;
@@ -77,9 +78,7 @@ public class VariableUsageResolver extends Pass {
   @Override
   public void cleanup() {
     this.superTypesMap.clear();
-    if (this.recordMap != null) {
-      this.recordMap.clear();
-    }
+    this.recordMap.clear();
     this.enumMap.clear();
   }
 

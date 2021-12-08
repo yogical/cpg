@@ -788,7 +788,7 @@ class ExpressionHandler(lang: CXXLanguageFrontend) :
     }
 
     private fun handleIntegerLiteral(ctx: CPPASTLiteralExpression): Literal<*> {
-        val value = String(ctx.value).lowercase(Locale.getDefault())
+        val value = String(ctx.value).toLowerCase(Locale.getDefault())
         val bigValue: BigInteger
         val suffix = value.suffix
 

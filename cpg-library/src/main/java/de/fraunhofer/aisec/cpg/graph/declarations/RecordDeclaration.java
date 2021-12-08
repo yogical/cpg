@@ -80,16 +80,14 @@ public class RecordDeclaration extends Declaration implements DeclarationHolder,
   @Transient private List<Type> superClasses = new ArrayList<>();
   @Transient private List<Type> implementedInterfaces = new ArrayList<>();
 
-  @org.neo4j.ogm.annotation.Relationship
-  private Set<RecordDeclaration> superTypeDeclarations = new HashSet<>();
+  @Relationship private Set<RecordDeclaration> superTypeDeclarations = new HashSet<>();
 
   private List<String> importStatements = new ArrayList<>();
-  @org.neo4j.ogm.annotation.Relationship private Set<Declaration> imports = new HashSet<>();
+  @Relationship private Set<Declaration> imports = new HashSet<>();
   // Methods and fields can be imported statically
   private List<String> staticImportStatements = new ArrayList<>();
 
-  @org.neo4j.ogm.annotation.Relationship
-  private Set<ValueDeclaration> staticImports = new HashSet<>();
+  @Relationship private Set<ValueDeclaration> staticImports = new HashSet<>();
 
   /**
    * It is important to set this name to a full qualified name (FQN).

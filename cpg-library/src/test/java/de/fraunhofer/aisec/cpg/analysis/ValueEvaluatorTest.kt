@@ -31,9 +31,9 @@ import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import java.nio.file.Path
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
 class ValueEvaluatorTest {
 
@@ -52,17 +52,17 @@ class ValueEvaluatorTest {
         val main = tu.byNameOrNull<FunctionDeclaration>("main")
         assertNotNull(main)
 
-        val b = main.bodyOrNull<DeclarationStatement>()?.singleDeclaration
+        val b = main!!.bodyOrNull<DeclarationStatement>()?.singleDeclaration
         assertNotNull(b)
 
-        var value = b.evaluate()
+        var value = b!!.evaluate()
         assertEquals(2, value)
 
         val printB = main.bodyOrNull<CallExpression>()
         assertNotNull(printB)
 
         val evaluator = ValueEvaluator()
-        value = evaluator.evaluate(printB.arguments.firstOrNull())
+        value = evaluator.evaluate(printB!!.arguments.firstOrNull())
         assertEquals(2, value)
 
         val path = evaluator.path
@@ -71,7 +71,7 @@ class ValueEvaluatorTest {
         val printA = main.bodyOrNull<CallExpression>(1)
         assertNotNull(printA)
 
-        value = printA.arguments.firstOrNull()?.evaluate()
+        value = printA!!.arguments.firstOrNull()?.evaluate()
         assertEquals(2, value)
     }
 }

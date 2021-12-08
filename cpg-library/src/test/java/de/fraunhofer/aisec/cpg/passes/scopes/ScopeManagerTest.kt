@@ -36,8 +36,7 @@ import de.fraunhofer.aisec.cpg.graph.NodeBuilder
 import de.fraunhofer.aisec.cpg.graph.declarations.ConstructorDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration
 import java.io.File
-import kotlin.test.*
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -84,7 +83,7 @@ internal class ScopeManagerTest : BaseTest() {
         // which later gets 'upgraded' to a constructor declaration.
         constructors.forEach {
             val scope = scopeManager.lookupScope(it)
-            Assertions.assertSame(it, scope!!.getAstNode())
+            assertSame(it, scope!!.getAstNode())
         }
     }
 
@@ -128,7 +127,7 @@ internal class ScopeManagerTest : BaseTest() {
         assertEquals(scopeA, final.lookupScope("A"))
 
         // and it should contain both functions from the different file in the same namespace
-        assertTrue(scopeA.valueDeclarations.contains(func1))
+        assertTrue(scopeA!!.valueDeclarations.contains(func1))
         assertTrue(scopeA.valueDeclarations.contains(func2))
 
         // finally, test whether our two namespace declarations are pointing to the same NameScope

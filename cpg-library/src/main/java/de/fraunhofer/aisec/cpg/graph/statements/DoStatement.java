@@ -39,7 +39,7 @@ public class DoStatement extends Statement {
   private Expression condition;
 
   /**
-   * The statement that is going to be executed and reexecuted, until the condition evaluates to
+   * The statement that is going to be executed and re-executed, until the condition evaluates to
    * false for the first time. Usually a {@link CompoundStatement}.
    */
   @SubGraph("AST")
