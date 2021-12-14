@@ -465,7 +465,7 @@ class TypescriptLanguageFrontendTest {
 
         val users = componentTU.byNameOrNull<RecordDeclaration>("Users")
         assertNotNull(users)
-        assertEquals("Comment on a record", users.comment)
+        assertEquals("Comment on a record", users!!.comment)
 
         val i = users.constructors.first()
         assertNotNull(i)
@@ -473,19 +473,19 @@ class TypescriptLanguageFrontendTest {
 
         val j = users.methods.firstOrNull { it.name == "componentDidMount" }
         assertNotNull(j)
-        assertEquals("Multiline comment inside of a file", j.comment)
+        assertEquals("Multiline comment inside of a file", j!!.comment)
 
         var function = functionTu.byNameOrNull<FunctionDeclaration>("someFunction")
         assertNotNull(function)
-        assertEquals("Block comment on a function", function.comment)
+        assertEquals("Block comment on a function", function!!.comment)
 
-        var variableDeclaration =
+        val variableDeclaration =
             SubgraphWalker.flattenAST(function).filterIsInstance<DeclarationStatement>().first()
         assertNotNull(variableDeclaration)
         assertEquals("Comment on a variable", variableDeclaration.comment)
 
         function = functionTu.byNameOrNull<FunctionDeclaration>("someOtherFunction")
         assertNotNull(function)
-        assertEquals("Comment on a Function", function.comment)
+        assertEquals("Comment on a Function", function!!.comment)
     }
 }

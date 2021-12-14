@@ -41,6 +41,11 @@ public class FilenameMapper extends Pass {
       tu.getIncludes().forEach(d -> handle(d, name));
       tu.getNamespaces().forEach(d -> handle(d, name));
     }
+    if (!translationResult.getTranslationUnits().isEmpty()) {
+      translationResult.setFile(
+              translationResult.getTranslationUnits().get(0).getFile()
+      );
+    }
   }
 
   private void handle(Node node, String file) {
