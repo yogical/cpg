@@ -26,10 +26,10 @@
 package de.fraunhofer.aisec.cpg_vis_neo4j
 
 import de.fraunhofer.aisec.cpg.*
-import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend
-import de.fraunhofer.aisec.cpg.frontends.llvm.LLVMIRLanguageFrontend
+import de.fraunhofer.aisec.cpg.frontends.CompilationDatabase.Companion.fromFile
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.frontends.typescript.TypeScriptLanguageFrontend
+import de.fraunhofer.aisec.cpg.helpers.Benchmark
 import java.io.File
 import java.net.ConnectException
 import java.nio.file.Paths
@@ -43,6 +43,7 @@ import org.neo4j.ogm.session.SessionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
+import picocli.CommandLine.ArgGroup
 
 private const val S_TO_MS_FACTOR = 1000
 private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 2000
@@ -50,7 +51,6 @@ private const val MAX_COUNT_OF_FAILS = 10
 private const val EXIT_SUCCESS = 0
 private const val EXIT_FAILURE = 1
 private const val VERIFY_CONNECTION = true
-private const val PURGE_DB = true
 private const val DEBUG_PARSER = true
 private const val AUTO_INDEX = "none"
 private const val PROTOCOL = "bolt://"
@@ -68,16 +68,29 @@ private const val DEFAULT_SAVE_DEPTH = -1
  * @author Andreas Hager, andreas.hager@aisec.fraunhofer.de
  */
 class Application : Callable<Int> {
+
     private val log: Logger
         get() = LoggerFactory.getLogger(Application::class.java)
+    // Either provide the files to evaluate or provide the path of compilation database with
+    // --json-compilation-database flag
+    @ArgGroup(exclusive = true, multiplicity = "1")
+    lateinit var mutuallyExclusiveParameters: Exclusive
 
-    @CommandLine.Parameters(
-        arity = "1..*",
-        description =
-            [
-                "The paths to analyze. If module support is enabled, the paths will be looked at if they contain modules"]
-    )
-    private var files: Array<String> = arrayOf(".")
+    class Exclusive {
+        @CommandLine.Parameters(
+            arity = "1..*",
+            description =
+                [
+                    "The paths to analyze. If module support is enabled, the paths will be looked at if they contain modules"]
+        )
+        var files: Array<String> = emptyArray()
+
+        @CommandLine.Option(
+            names = ["--json-compilation-database"],
+            description = ["The path to an optional a JSON compilation database"]
+        )
+        var jsonCompilationDatabase: File? = null
+    }
 
     @CommandLine.Option(
         names = ["--user"],
@@ -144,6 +157,44 @@ class Application : Callable<Int> {
     )
     private var enableExperimentalTypeScript: Boolean = false
 
+    @CommandLine.Option(
+        names = ["--print-benchmark"],
+        description = ["Print benchmark result as markdown table"]
+    )
+    private var printBenchmark: Boolean = false
+
+    @CommandLine.Option(
+        names = ["--no-default-passes"],
+        description = ["Do not register default passes [used for debugging]"]
+    )
+    private var noDefaultPasses: Boolean = false
+
+    @CommandLine.Option(
+        names = ["--no-neo4j"],
+        description = ["Do not push cpg into neo4j [used for debugging]"]
+    )
+    private var noNeo4j: Boolean = false
+
+    @CommandLine.Option(
+        names = ["--no-purge-db"],
+        description = ["Do no purge neo4j database before pushing the cpg"]
+    )
+    private var noPurgeDb: Boolean = false
+
+    @CommandLine.Option(
+        names = ["--top-level"],
+        description =
+            [
+                "Set top level directory of project structure. Default: Largest common path of all source files"]
+    )
+    private var topLevel: File? = null
+
+    @CommandLine.Option(
+        names = ["--benchmark-json"],
+        description = ["Save benchmark results to json file"]
+    )
+    private var benchmarkJson: File? = null
+
     /**
      * Pushes the whole translationResult to the neo4j db.
      *
@@ -154,20 +205,27 @@ class Application : Callable<Int> {
      */
     @Throws(InterruptedException::class, ConnectException::class)
     fun pushToNeo4j(translationResult: TranslationResult) {
+        val bench = Benchmark(this.javaClass, "Push cpg to neo4j", false, translationResult)
         log.info("Using import depth: $depth")
-        log.info("Count base nodes to save: " + translationResult.translationUnits.size)
+        log.info(
+            "Count base nodes to save: " +
+                translationResult.translationUnits.size +
+                translationResult.additionalNodes.size
+        )
 
         val sessionAndSessionFactoryPair = connect()
 
         val session = sessionAndSessionFactoryPair.first
         session.beginTransaction().use { transaction ->
-            if (PURGE_DB) session.purgeDatabase()
+            if (!noPurgeDb) session.purgeDatabase()
             session.save(translationResult.translationUnits, depth)
+            session.save(translationResult.additionalNodes, depth)
             transaction.commit()
         }
 
         session.clear()
         sessionAndSessionFactoryPair.second.close()
+        bench.stop()
     }
 
     /**
@@ -226,37 +284,40 @@ class Application : Callable<Int> {
      */
     @OptIn(ExperimentalPython::class, ExperimentalGolang::class, ExperimentalTypeScript::class)
     private fun setupTranslationConfiguration(): TranslationConfiguration {
-        assert(files.isNotEmpty())
-        val filePaths = arrayOfNulls<File>(files.size)
-        var topLevel: File? = null
-
-        for (index in files.indices) {
-            val path = Paths.get(files[index]).toAbsolutePath().normalize()
-            val file = File(path.toString())
-            require(file.exists() && (!file.isHidden)) {
-                "Please use a correct path. It was: $path"
+        val filePaths =
+            mutuallyExclusiveParameters.files.map {
+                Paths.get(it).toAbsolutePath().normalize().toFile()
             }
-            val currentTopLevel = if (file.isDirectory) file else file.parentFile
-            if (topLevel == null) topLevel = currentTopLevel
-            require(topLevel.toString() == currentTopLevel.toString()) {
-                "All files should have the same top level path."
+        filePaths.forEach {
+            require(it.exists() && (!it.isHidden)) {
+                "Please use a correct path. It was: ${it.path}"
             }
-            filePaths[index] = file
         }
 
         val translationConfiguration =
             TranslationConfiguration.builder()
-                .sourceLocations(*filePaths)
-                .topLevel(topLevel!!)
-                .defaultPasses()
+                .sourceLocations(filePaths)
+                .topLevel(topLevel)
                 .defaultLanguages()
                 .loadIncludes(loadIncludes)
                 .debugParser(DEBUG_PARSER)
 
-        translationConfiguration.registerLanguage(
+        if (!noDefaultPasses) {
+            translationConfiguration.defaultPasses()
+        }
+
+        if (mutuallyExclusiveParameters.jsonCompilationDatabase != null) {
+            val db = fromFile(mutuallyExclusiveParameters.jsonCompilationDatabase!!)
+            if (db.isNotEmpty()) {
+                translationConfiguration.useCompilationDatabase(db)
+                translationConfiguration.sourceLocations(db.sourceFiles)
+            }
+        }
+
+        /*translationConfiguration.registerLanguage(
             LLVMIRLanguageFrontend::class.java,
             LLVMIRLanguageFrontend.LLVM_EXTENSIONS
-        )
+        )*/
 
         if (enableExperimentalPython) {
             translationConfiguration.registerLanguage(
@@ -265,12 +326,12 @@ class Application : Callable<Int> {
             )
         }
 
-        if (enableExperimentalGo) {
+        /*if (enableExperimentalGo) {
             translationConfiguration.registerLanguage(
                 GoLanguageFrontend::class.java,
                 GoLanguageFrontend.GOLANG_EXTENSIONS
             )
-        }
+        }*/
 
         if (enableExperimentalTypeScript) {
             translationConfiguration.registerLanguage(
@@ -326,10 +387,23 @@ class Application : Callable<Int> {
             "Benchmark: analyzing code in " + (analyzingTime - startTime) / S_TO_MS_FACTOR + " s."
         )
 
-        pushToNeo4j(translationResult)
+        if (!noNeo4j) {
+            pushToNeo4j(translationResult)
+        }
 
         val pushTime = System.currentTimeMillis()
         log.info("Benchmark: push code in " + (pushTime - analyzingTime) / S_TO_MS_FACTOR + " s.")
+
+        val benchmarkResult = translationResult.benchmarkResults
+
+        if (printBenchmark) {
+            benchmarkResult.print()
+        }
+
+        benchmarkJson?.let { theFile ->
+            log.info("Save benchmark results to file: $theFile")
+            theFile.writeText(benchmarkResult.json)
+        }
 
         return EXIT_SUCCESS
     }

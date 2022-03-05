@@ -28,8 +28,12 @@ package de.fraunhofer.aisec.cpg;
 import static de.fraunhofer.aisec.cpg.frontends.cpp.CXXLanguageFrontend.CXX_EXTENSIONS;
 import static de.fraunhofer.aisec.cpg.frontends.cpp.CXXLanguageFrontend.CXX_HEADER_EXTENSIONS;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import de.fraunhofer.aisec.cpg.frontends.CompilationDatabase;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.cpp.CXXLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.java.JavaLanguageFrontend;
@@ -37,7 +41,10 @@ import de.fraunhofer.aisec.cpg.passes.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,6 +147,16 @@ public class TranslationConfiguration {
    */
   final boolean typeSystemActiveInFrontend;
 
+  /**
+   * This is the data structure for storing the compilation database. It stores a mapping from the
+   * File to the list of files that have to be included to their path, specified by the parameter in
+   * the compilation database. This is currently only used by the {@link CXXLanguageFrontend}.
+   *
+   * <p>[{@link CompilationDatabase.Companion#fromFile(File)} can be used to construct a new
+   * compilation database from a file.
+   */
+  final CompilationDatabase compilationDatabase;
+
   @NonNull private final List<Pass> passes;
 
   /** This sub configuration object holds all information about inference and smart-guessing. */
@@ -163,7 +180,8 @@ public class TranslationConfiguration {
       boolean useUnityBuild,
       boolean useParallelFrontends,
       boolean typeSystemActiveInFrontend,
-      InferenceConfiguration inferenceConfiguration) {
+      InferenceConfiguration inferenceConfiguration,
+      CompilationDatabase compilationDatabase) {
     this.symbols = symbols;
     this.sourceLocations = sourceLocations;
     this.topLevel = topLevel;
@@ -183,6 +201,7 @@ public class TranslationConfiguration {
     this.useParallelFrontends = useParallelFrontends;
     this.typeSystemActiveInFrontend = typeSystemActiveInFrontend;
     this.inferenceConfiguration = inferenceConfiguration;
+    this.compilationDatabase = compilationDatabase;
   }
 
   public static Builder builder() {
@@ -197,10 +216,17 @@ public class TranslationConfiguration {
     return this.sourceLocations;
   }
 
+  @Nullable
+  public CompilationDatabase getCompilationDatabase() {
+    return this.compilationDatabase;
+  }
+
   public File getTopLevel() {
     return topLevel;
   }
 
+  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "name")
+  @JsonIdentityReference(alwaysAsId = true)
   public List<Pass> getRegisteredPasses() {
     return this.passes;
   }
@@ -248,6 +274,7 @@ public class TranslationConfiguration {
     private boolean typeSystemActiveInFrontend = true;
     private InferenceConfiguration inferenceConfiguration =
         new InferenceConfiguration.Builder().build();
+    private CompilationDatabase compilationDatabase;
 
     public Builder symbols(Map<String, String> symbols) {
       this.symbols = symbols;
@@ -273,6 +300,11 @@ public class TranslationConfiguration {
      */
     public Builder sourceLocations(List<File> sourceLocations) {
       this.sourceLocations = sourceLocations;
+      return this;
+    }
+
+    public Builder useCompilationDatabase(CompilationDatabase compilationDatabase) {
+      this.compilationDatabase = compilationDatabase;
       return this;
     }
 
@@ -369,6 +401,12 @@ public class TranslationConfiguration {
     public Builder registerLanguage(
         @NonNull Class<? extends LanguageFrontend> frontend, List<String> fileTypes) {
       this.frontends.put(frontend, fileTypes);
+      return this;
+    }
+
+    /** Unregisters a registered {@link de.fraunhofer.aisec.cpg.frontends.LanguageFrontend}. */
+    public Builder unregisterLanguage(@NonNull Class<? extends LanguageFrontend> frontend) {
+      this.frontends.remove(frontend);
       return this;
     }
 
@@ -517,7 +555,13 @@ public class TranslationConfiguration {
           useUnityBuild,
           useParallelFrontends,
           typeSystemActiveInFrontend,
-          inferenceConfiguration);
+          inferenceConfiguration,
+          compilationDatabase);
     }
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
   }
 }

@@ -29,6 +29,8 @@ import de.fraunhofer.aisec.cpg.frontends.*
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.NodeBuilder
 import de.fraunhofer.aisec.cpg.graph.TypeManager
+import de.fraunhofer.aisec.cpg.graph.edge.Properties
+import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.*
 import de.fraunhofer.aisec.cpg.graph.types.PointerType.PointerOrigin
@@ -38,6 +40,7 @@ import java.math.BigInteger
 import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Collectors
+import kotlin.collections.ArrayList
 import kotlin.math.max
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.core.dom.ast.cpp.ICPPASTExpression
@@ -482,7 +485,7 @@ class ExpressionHandler(lang: CXXLanguageFrontend) :
                     reference.operatorCode,
                     ctx.rawSignature
                 )
-            if ((ctx.functionNameExpression as CPPASTFieldReference).fieldName is CPPASTTemplateId
+            if ((ctx.functionNameExpression as? CPPASTFieldReference)?.fieldName is CPPASTTemplateId
             ) {
                 // Make necessary adjustments if we are handling a function template
                 val name =
@@ -499,16 +502,15 @@ class ExpressionHandler(lang: CXXLanguageFrontend) :
             }
         } else if (reference is BinaryOperator && reference.operatorCode == ".") {
             // We have a dot operator that was not classified as a member expression. This happens
-            // when
-            // dealing with function pointer calls that happen on an explicit object
+            // when dealing with function pointer calls that happen on an explicit object
             callExpression =
                 NodeBuilder.newMemberCallExpression(
-                    reference.code,
+                    ctx.functionNameExpression.rawSignature,
                     "",
                     reference.lhs,
                     reference.rhs,
                     reference.operatorCode,
-                    reference.code
+                    ctx.rawSignature
                 )
         } else if (reference is UnaryOperator && reference.operatorCode == "*") {
             // Classic C-style function pointer call -> let's extract the target
@@ -727,11 +729,16 @@ class ExpressionHandler(lang: CXXLanguageFrontend) :
 
     private fun handleInitializerList(ctx: CPPASTInitializerList): InitializerListExpression {
         val expression = NodeBuilder.newInitializerListExpression(ctx.rawSignature)
-        val initializers: MutableList<Expression?> = ArrayList()
+
         for (clause in ctx.clauses) {
-            initializers.add(handle(clause))
+            handle(clause)?.let {
+                val edge = PropertyEdge(expression, it)
+                edge.addProperty(Properties.INDEX, expression.initializersPropertyEdge.size)
+
+                expression.initializersPropertyEdge.add(edge)
+            }
         }
-        expression.initializers = initializers
+
         return expression
     }
 

@@ -27,6 +27,18 @@ plugins {
     application
 }
 
+publishing {
+    publications {
+        named<MavenPublication>("cpg-console") {
+            pom {
+                artifactId = "cpg-console"
+                name.set("Code Property Graph - Console")
+                description.set("An Application to translate source code into a Code Property Graph and perform different types of analysis on the resulting graph.")
+            }
+        }
+    }
+}
+
 application {
     mainClass.set("de.fraunhofer.aisec.cpg.console.CpgConsole")
 }
@@ -55,10 +67,13 @@ val versions = mapOf(
 dependencies {
     // CPG
     api(project(":cpg-core"))
-    api(project(":cpg-language-llvm"))
+    api(project(":cpg-analysis"))
+    //api(project(":cpg-language-llvm"))
+    api(project(":cpg-language-python"))
+    //api(project(":cpg-language-go"))
     api(project(":cpg-neo4j"))
 
-    implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.0")
 
     // JUnit
     testImplementation("org.jetbrains.kotlin:kotlin-test")
@@ -69,8 +84,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-script-runtime")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.jline:jline:3.21.0")
 
-    implementation("org.jetbrains.kotlinx:ki-shell:0.3.3")
+    implementation("org.jetbrains.kotlinx:ki-shell:0.4.5")
 }
