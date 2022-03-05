@@ -27,9 +27,7 @@ package de.fraunhofer.aisec.cpg.graph;
 
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.cpp.CXXLanguageFrontend;
-import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.java.JavaLanguageFrontend;
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.typescript.TypeScriptLanguageFrontend;
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.TemplateDeclaration;
@@ -54,6 +52,32 @@ import org.slf4j.LoggerFactory;
 public class TypeManager {
 
   private static final Logger log = LoggerFactory.getLogger(TypeManager.class);
+
+  private static Class<?> llvmClass = null;
+  private static Class<?> pythonClass = null;
+  private static Class<?> goClass = null;
+
+  static {
+    try {
+      llvmClass = Class.forName("de.fraunhofer.aisec.cpg.frontends.llvm.LLVMIRLanguageFrontend");
+
+    } catch (ClassNotFoundException | ExceptionInInitializerError ignored) {
+      log.info("LLVM frontend not loaded.");
+    }
+    try {
+      pythonClass =
+          Class.forName("de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend");
+    } catch (ClassNotFoundException | ExceptionInInitializerError ignored) {
+      log.info("Python frontend not loaded.");
+    }
+    try {
+      goClass = Class.forName("de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend");
+    } catch (ClassNotFoundException | ExceptionInInitializerError ignored) {
+      log.info("Go frontend not loaded.");
+    } catch (LinkageError ex) {
+      log.error("Go frontend was found, but could not be loaded", ex);
+    }
+  }
 
   private static final List<String> primitiveTypeNames =
       List.of("byte", "short", "int", "long", "float", "double", "boolean", "char");
@@ -516,26 +540,23 @@ public class TypeManager {
 
   @NonNull
   public Language getLanguage() {
-    Class<LanguageFrontend> clazz = null;
-
-    try {
-      clazz =
-          (Class<LanguageFrontend>)
-              Class.forName("de.fraunhofer.aisec.cpg.frontends.llvm.LLVMIRLanguageFrontend");
-    } catch (ClassNotFoundException ignored) {
-    }
-
     if (frontend instanceof JavaLanguageFrontend) {
       return Language.JAVA;
     } else if (frontend instanceof CXXLanguageFrontend) {
       return Language.CXX;
-    } else if (frontend instanceof GoLanguageFrontend) {
+    } else if (frontend != null
+        && goClass != null
+        && goClass.isAssignableFrom(frontend.getClass())) {
       return Language.GO;
-    } else if (frontend instanceof PythonLanguageFrontend) {
+    } else if (frontend != null
+        && pythonClass != null
+        && pythonClass.isAssignableFrom(frontend.getClass())) {
       return Language.PYTHON;
     } else if (frontend instanceof TypeScriptLanguageFrontend) {
       return Language.TYPESCRIPT;
-    } else if (frontend != null && clazz != null && clazz.isAssignableFrom(frontend.getClass())) {
+    } else if (frontend != null
+        && llvmClass != null
+        && llvmClass.isAssignableFrom(frontend.getClass())) {
       return Language.LLVM_IR;
     }
 

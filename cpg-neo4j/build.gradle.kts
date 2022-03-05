@@ -31,6 +31,19 @@ application {
     mainClass.set("de.fraunhofer.aisec.cpg_vis_neo4j.ApplicationKt")
 }
 
+publishing {
+    publications {
+        named<MavenPublication>("cpg-neo4j") {
+            pom {
+                artifactId = "cpg-neo4j"
+                name.set("Code Property Graph - Neo4j")
+                description.set("An Application to translate and persist specified source code as a Code Property Graph to an installed instance of the Neo4j Graph Database.")
+            }
+        }
+    }
+}
+
+
 tasks.withType<Test> {
     useJUnitPlatform {
         if (!project.hasProperty("integration")) {
@@ -56,9 +69,11 @@ distributions {
 dependencies {
     // CPG
     api(project(":cpg-core"))
-    api(project(":cpg-language-llvm"))
+    //api(project(":cpg-language-llvm"))
+    api(project(":cpg-language-python"))
+    //api(project(":cpg-language-go"))
 
-    implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.0")
 
     // neo4j
     api("org.neo4j", "neo4j-ogm-core", versions["neo4j-ogm"])
@@ -73,6 +88,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.1")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.1")
+    api("info.picocli:picocli:4.6.3")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
 }

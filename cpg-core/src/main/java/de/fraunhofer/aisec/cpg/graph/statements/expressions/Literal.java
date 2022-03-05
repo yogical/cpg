@@ -28,6 +28,7 @@ package de.fraunhofer.aisec.cpg.graph.statements.expressions;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import java.util.Objects;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a literal value, meaning the value is fixed and not depending on the runtime
@@ -47,6 +48,7 @@ public class Literal<T> extends Expression {
     this.value = value;
   }
 
+  @NotNull
   @Override
   public String toString() {
     return new ToStringBuilder(this, Node.TO_STRING_STYLE)
@@ -69,6 +71,8 @@ public class Literal<T> extends Expression {
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    // include the value in the hash code, otherwise the hash set/map implementation falls back to
+    // equals() because the node's hash code only depends on the name
+    return Objects.hash(super.hashCode(), value);
   }
 }

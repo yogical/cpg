@@ -27,14 +27,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     // built-in
-    //java
+    java
     //`java-library`
     jacoco
     signing
+    `maven-publish`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.0.0"
-    id("com.github.johnrengelman.shadow") version "7.1.0" apply false
+    id("com.diffplug.spotless") version "6.2.0"
     kotlin("jvm") version "1.6.0" apply false
 }
 
@@ -53,12 +53,14 @@ subprojects {
     apply(plugin = "jacoco")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
+    apply(plugin = "maven-publish")
+    apply(plugin = "signing")
 
     repositories {
         mavenCentral()
 
         ivy {
-            setUrl("https://download.eclipse.org/tools/cdt/releases/10.4/cdt-10.4.1/plugins")
+            setUrl("https://download.eclipse.org/tools/cdt/releases/10.5/cdt-10.5.0/plugins")
             metadataSources {
                 artifact()
             }
@@ -68,9 +70,79 @@ subprojects {
         }
     }
 
+    publishing {
+        publications {
+            create<MavenPublication>(name) {
+                from(components["java"])
+
+                pom {
+                    url.set("https://github.com/Fraunhofer-AISEC/cpg")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("oxisto")
+                            organization.set("Fraunhofer AISEC")
+                            organizationUrl.set("https://www.aisec.fraunhofer.de")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git:git://github.com:Fraunhofer-AISEC/cpg.git")
+                        developerConnection.set("scm:git:ssh://github.com:Fraunhofer-AISEC/cpg.git")
+                        url.set("https://github.com/Fraunhofer-AISEC/cpg")
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+
+                credentials {
+                    val mavenCentralUsername: String? by project
+                    val mavenCentralPassword: String? by project
+
+                    username = mavenCentralUsername
+                    password = mavenCentralPassword
+                }
+            }
+        }
+    }
+
+    signing {
+        val signingKey: String? by project
+        val signingPassword: String? by project
+
+        useInMemoryPgpKeys(signingKey, signingPassword)
+
+        setRequired({
+            gradle.taskGraph.hasTask("publish")
+        })
+
+        sign(publishing.publications[name])
+    }
+
+    tasks.withType<GenerateModuleMetadata> {
+        enabled = false
+    }
+
     tasks.withType<JavaCompile> {
         sourceCompatibility = "11"
         targetCompatibility = "11"
+    }
+
+    tasks.named<Test>("test") {
+        useJUnitPlatform()
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
     }
 
     tasks.withType<JacocoReport> {
