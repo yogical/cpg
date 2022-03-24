@@ -21,7 +21,7 @@ dependencies {
     // this exposes all of our (published) modules as dependency
     api(project(":cpg-core"))
     api(project(":cpg-analysis"))
-    //api(project(":cpg-language-llvm"))
+    api(project(":cpg-language-llvm"))
     api(project(":cpg-language-python"))
-    //api(project(":cpg-language-go"))
+    api(project(":cpg-language-go"))
 }

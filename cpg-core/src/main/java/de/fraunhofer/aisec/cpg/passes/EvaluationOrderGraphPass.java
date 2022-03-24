@@ -236,7 +236,7 @@ public class EvaluationOrderGraphPass extends Pass {
    * Removes EOG edges by first building the negative set of nodes that cannot be visited and then
    * remove there outgoing edges.In contrast to truncateLooseEdges this also removes cycles.
    */
-  private void removeUnreachableEOGEdges(@NonNull TranslationUnitDeclaration tu) {
+  protected void removeUnreachableEOGEdges(@NonNull TranslationUnitDeclaration tu) {
     List<Node> eognodes =
         SubgraphWalker.flattenAST(tu).stream()
             .filter(node -> !(node.getPrevEOG().isEmpty() && node.getNextEOG().isEmpty()))

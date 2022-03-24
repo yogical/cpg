@@ -38,7 +38,9 @@ import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation
 import de.fraunhofer.aisec.cpg.sarif.Region
 import java.net.URI
 import java.nio.file.Path
-import org.junit.jupiter.api.Assertions.*
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.jupiter.api.Test
 
 @ExperimentalPython
@@ -977,10 +979,10 @@ class PythonFrontendTest : BaseTest() {
         // test = [(1, 2, 3)]
         val testDeclaration = p.declarations[0] as? VariableDeclaration
         assertNotNull(testDeclaration)
-        assertEquals("test", testDeclaration!!.name)
+        assertEquals("test", testDeclaration.name)
         val testDeclStmt = p.statements[0] as? DeclarationStatement
         assertNotNull(testDeclStmt)
-        assertEquals(1, testDeclStmt!!.declarations.size)
+        assertEquals(1, testDeclStmt.declarations.size)
         assertEquals(testDeclaration, testDeclStmt.declarations[0] as? VariableDeclaration)
 
         /* for loop:
@@ -990,9 +992,9 @@ class PythonFrontendTest : BaseTest() {
         val forStmt = p.statements[1] as? ForEachStatement
         assertNotNull(forStmt)
 
-        val forVariable = forStmt!!.variable as? InitializerListExpression
+        val forVariable = forStmt.variable as? InitializerListExpression
         assertNotNull(forVariable)
-        assertEquals(3, forVariable!!.initializers.size)
+        assertEquals(3, forVariable.initializers.size)
         val t1Decl = forVariable.initializers[0] as? DeclaredReferenceExpression
         val t2Decl = forVariable.initializers[1] as? DeclaredReferenceExpression
         val t3Decl = forVariable.initializers[2] as? DeclaredReferenceExpression
@@ -1003,20 +1005,20 @@ class PythonFrontendTest : BaseTest() {
 
         val iter = forStmt.iterable as? DeclaredReferenceExpression
         assertNotNull(iter)
-        assertEquals(testDeclaration, iter!!.refersTo)
+        assertEquals(testDeclaration, iter.refersTo)
 
         val forBody = forStmt.statement as? CompoundStatement
         assertNotNull(forBody)
-        assertEquals(1, forBody!!.statements.size)
+        assertEquals(1, forBody.statements.size)
 
         // print("bug ... {} {} {}".format(t1, t2, t3))
         val forBodyStmt = forBody.statements[0] as? CallExpression
         assertNotNull(forBodyStmt)
-        assertEquals("print", forBodyStmt!!.name)
+        assertEquals("print", forBodyStmt.name)
 
         val printArg = forBodyStmt.arguments[0] as? MemberCallExpression
         assertNotNull(printArg)
-        val formatArgT1 = printArg!!.arguments[0] as? DeclaredReferenceExpression
+        val formatArgT1 = printArg.arguments[0] as? DeclaredReferenceExpression
         assertNotNull(formatArgT1)
         val formatArgT2 = printArg.arguments[1] as? DeclaredReferenceExpression
         assertNotNull(formatArgT2)
@@ -1047,7 +1049,7 @@ class PythonFrontendTest : BaseTest() {
 
         val ifStmt = p.statements.get(0) as? IfStatement
         assertNotNull(ifStmt)
-        val ifCond = ifStmt!!.condition as? BinaryOperator
+        val ifCond = ifStmt.condition as? BinaryOperator
         assertNotNull(ifCond)
         val ifThen = ifStmt.thenStatement as? CompoundStatement
         assertNotNull(ifThen)
@@ -1055,31 +1057,31 @@ class PythonFrontendTest : BaseTest() {
         assertNotNull(ifElse)
 
         // sys.version_info.minor > 9
-        assertEquals(">", ifCond!!.operatorCode)
+        assertEquals(">", ifCond.operatorCode)
         assertEquals("minor", (ifCond.lhs as? DeclaredReferenceExpression)?.name)
 
         // phr = {"user_id": user_id} | content
         val phrDeclaration =
-            (ifThen!!.statements.get(0) as? DeclarationStatement)?.declarations?.get(0) as?
+            (ifThen.statements.get(0) as? DeclarationStatement)?.declarations?.get(0) as?
                 VariableDeclaration
         assertNotNull(phrDeclaration)
-        assertEquals("phr", phrDeclaration!!.name)
+        assertEquals("phr", phrDeclaration.name)
         val phrInintializer = phrDeclaration.initializer as? BinaryOperator
         assertNotNull(phrInintializer)
-        assertEquals("|", phrInintializer!!.operatorCode)
+        assertEquals("|", phrInintializer.operatorCode)
         assertEquals(true, phrInintializer.lhs is InitializerListExpression)
 
         // z = {"user_id": user_id}
         val elseStmt1 =
-            (ifElse!!.statements[0] as? DeclarationStatement)?.declarations?.get(0) as?
+            (ifElse.statements.get(0) as? DeclarationStatement)?.declarations?.get(0) as?
                 VariableDeclaration
         assertNotNull(elseStmt1)
-        assertEquals("z", elseStmt1!!.name)
+        assertEquals("z", elseStmt1.name)
 
         // phr = {**z, **content}
-        val elseStmt2 = ifElse.statements[1] as? BinaryOperator
+        val elseStmt2 = ifElse.statements.get(1) as? BinaryOperator
         assertNotNull(elseStmt2)
-        assertEquals("=", elseStmt2!!.operatorCode)
+        assertEquals("=", elseStmt2.operatorCode)
         val elseStmt2Rhs = elseStmt2.rhs as? InitializerListExpression
         assertNotNull(elseStmt2Rhs)
     }

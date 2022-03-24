@@ -48,24 +48,14 @@ publishing {
     }
 }
 
-tasks.withType<GenerateModuleMetadata> {
-    enabled = false
-}
-
 tasks.named<Test>("test") {
     useJUnitPlatform {
         if (!project.hasProperty("experimental")) {
             excludeTags("experimental")
-        } else {
-            systemProperty("java.library.path", project.projectDir.resolve("src/main/golang"))
         }
 
         if (!project.hasProperty("experimentalTypeScript")) {
             excludeTags("experimentalTypeScript")
-        }
-
-        if (!project.hasProperty("experimentalPython")) {
-            excludeTags("experimentalPython")
         }
     }
     maxHeapSize = "4048m"
@@ -74,11 +64,6 @@ tasks.named<Test>("test") {
 node {
     download.set(findProperty("nodeDownload")?.toString()?.toBoolean() ?: false)
     version.set("16.4.2")
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
 }
 
 val yarnInstall by tasks.registering(YarnTask::class) {
@@ -131,6 +116,7 @@ dependencies {
 
     // openCypher
     api("org.opencypher:parser-9.0:9.0.20210312")
+    api("org.scala-lang:scala-library:2.12.15") // Dependency of opencypher manually upgraded due to vulnerability
 
     api("commons-io:commons-io:2.11.0")
 
@@ -138,16 +124,13 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // jep for python support
-    api("black.ninia:jep:4.0.0")
-
     // JUnit
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testFixturesApi("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
 
-    testFixturesApi("org.mockito:mockito-core:4.3.1")
+    testFixturesApi("org.mockito:mockito-core:4.4.0")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
